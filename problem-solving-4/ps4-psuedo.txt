@@ -1,0 +1,26 @@
+Your algorithms should be plain English explanations for the steps your program will take to solve these problems.
+
+Write out your algorithm for Problem 2 here:
+
+- Period: end of sentence.
+- Space: splits a word from another word
+- Special chars: ignored
+
+Algorithm:
+
+- Read line
+- Split sentences with period
+- Check words with words in dictionary. Note: Will check only half the words
+- record in a table the shift number as key and number of words found in dictionary as value
+- keep track of max
+- use max shift to decode the message to decode the message
+
+
+Write out your algorithm for Problem 4 here:
+
+Algorithm (Use recursion):
+
+- Find best shift for sentence (will return order of shifts)
+- apply shifts to sentence until there are no more words to decrypt
+
+
