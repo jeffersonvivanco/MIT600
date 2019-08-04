@@ -15,7 +15,7 @@ def process(url: str):
     logging.info('making request to %s', url)
 
     try:
-        r = request.urlopen(url, timeout=5)
+        r = request.urlopen(url, timeout=10)
     except Exception as e:
         logging.error('error processing request %s, message %s', url, e.args)
         return []
@@ -51,8 +51,8 @@ def highlight_trigger_word(story, triggers):
 
 
 def ask_user():
-    input('Press x then enter to exit\n')
-    return True
+    input('Press any key and then enter to exit\n')
+    exit(0)
 
 
 def read_file():
@@ -91,6 +91,7 @@ def start():
     print('RSS Feed filter starting ...')
     print('Reading triggers file ...')
     t.start()
+    time.sleep(3)
     triggers = read_file()
     while t.is_alive():
         stories = []
@@ -100,7 +101,7 @@ def start():
         stories = sorted(stories, key=attrgetter('_pub_date'))
         for s in filter_stories(stories, triggers):
             print('> {s}'.format(s=highlight_trigger_word(s, triggers)))
-        time.sleep(10)
+        time.sleep(60)
 
 
 urls = ['https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en', 'http://rss.news.yahoo.com/rss/topstories']
