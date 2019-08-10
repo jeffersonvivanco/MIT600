@@ -1,21 +1,29 @@
-from urllib import request, parse as url_parser
-from xml.etree.ElementTree import parse as xml_parser, Element
-from problem_solving_5.NewsStory import *
-from problem_solving_5.Trigger import *
+from urllib import request
+from xml.etree.ElementTree import parse as xml_parser
+from NewsStory import NewsStory
+from Trigger import *
 from threading import Thread
 import time
 from datetime import datetime
 from operator import attrgetter
 import re
 import logging
+from queue import Queue
+import os
 
 
-def process(url: str):
+def process(url: str, in_q):
     # making request
     logging.info('making request to %s', url)
 
     try:
         r = request.urlopen(url, timeout=10)
+        while True:
+            if r is None and not in_q.empty():
+                in_q.task_done()
+                return
+            if r is not None:
+                break
     except Exception as e:
         logging.error('error processing request %s, message %s', url, e.args)
         return []
@@ -50,14 +58,14 @@ def highlight_trigger_word(story, triggers):
     return str_repr
 
 
-def ask_user():
+def ask_user(out_q):
     input('Press any key and then enter to exit\n')
-    exit(0)
+    out_q.put(_sentinel)
 
 
 def read_file():
     try:
-        with open('/Users/jeffersonvivanco/Documents/MIT600/problem_solving_5/triggers.txt', 'rt') as f:
+        with open(use_path + 'triggers.txt', 'rt') as f:
             lines = (line.strip() for line in f)
             triggers = []
             maybe_triggers = []
@@ -83,28 +91,43 @@ def read_file():
             return triggers
     except FileNotFoundError as e:
         logging.error('File was not found: %s', e.filename)
-        print('Please make sure file %s exists', e.filename)
-        exit()
+        return None
 
 
-def start():
+def start(in_q):
     print('RSS Feed filter starting ...')
     print('Reading triggers file ...')
-    t.start()
-    time.sleep(3)
     triggers = read_file()
-    while t.is_alive():
+    if triggers is None:
+        in_q.put(_sentinel)
+        return
+    start_time = time.time()
+    started = True
+    while True:
+        if not in_q.empty() and in_q.get() is _sentinel:
+            break
+        if not started and time.time() - start_time < 60:
+            continue
+        start_time = time.time()
+        started = False
         stories = []
         for url in urls:
-            new_stories = process(url)
+            new_stories = process(url, in_q)
             stories += new_stories
         stories = sorted(stories, key=attrgetter('_pub_date'))
+        print('=' * 100)
         for s in filter_stories(stories, triggers):
             print('> {s}'.format(s=highlight_trigger_word(s, triggers)))
-        time.sleep(60)
 
 
+use_path = os.path.abspath(__file__).replace('ps5.py', '')
 urls = ['https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en', 'http://rss.news.yahoo.com/rss/topstories']
-logging.getLogger().setLevel(logging.DEBUG)
-t = Thread(target=ask_user)
-start()
+logging.getLogger().setLevel(logging.ERROR)
+# object that signals shutdown
+_sentinel = object()
+q = Queue()
+t = Thread(target=ask_user, args=(q,))
+t.start()
+time.sleep(3)
+t2 = Thread(target=start, args=(q,))
+t2.start()

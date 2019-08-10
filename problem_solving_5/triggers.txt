@@ -5,7 +5,7 @@ t1 TITLE Trump
 t2 PHRASE New York
 
 # title trigger named t3
-t3 TITLE Texas
+t3 TITLE Russia
 
 # composite trigger named t4
 t4 AND t1 t3
