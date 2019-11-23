@@ -9,7 +9,7 @@ from operator import attrgetter
 import re
 import logging
 from queue import Queue
-import os
+import pkgutil
 
 
 def process(url: str, in_q):
@@ -65,30 +65,31 @@ def ask_user(out_q):
 
 def read_file():
     try:
-        with open(use_path + 'triggers.txt', 'rt') as f:
-            lines = (line.strip() for line in f)
-            triggers = []
-            maybe_triggers = []
-            for line in lines:
-                if line.startswith('t'):
-                    _, trigger, *values = line.split(' ')
-                    if trigger == 'TITLE':
-                        t = TitleTrigger(values[0])
-                        maybe_triggers.append(t)
-                    if trigger == 'PHRASE':
-                        t = PhraseTrigger(' '.join(values))
-                        maybe_triggers.append(t)
-                    if trigger == 'AND' and len(values) == 2:
-                        t1_index = int(values[0][1]) - 1
-                        t2_index = int(values[1][1]) - 1
-                        a = AndTrigger(maybe_triggers[t1_index], maybe_triggers[t2_index])
-                        maybe_triggers.append(a)
-                if line.startswith('ADD'):
-                    _, *values = line.split(' ')
-                    for v in values:
-                        n = int(v[1]) - 1
-                        triggers.append(maybe_triggers[n])
-            return triggers
+        data = pkgutil.get_data('problem_solving_5', 'triggers.txt')
+        data = data.decode('ascii')
+        data = (l.strip() for l in re.split('\n', data) if len(l) > 1)
+        triggers = []
+        maybe_triggers = []
+        for line in data:
+            if line.startswith('t'):
+                _, trigger, *values = line.split(' ')
+                if trigger == 'TITLE':
+                    t = TitleTrigger(values[0])
+                    maybe_triggers.append(t)
+                if trigger == 'PHRASE':
+                    t = PhraseTrigger(' '.join(values))
+                    maybe_triggers.append(t)
+                if trigger == 'AND' and len(values) == 2:
+                    t1_index = int(values[0][1]) - 1
+                    t2_index = int(values[1][1]) - 1
+                    a = AndTrigger(maybe_triggers[t1_index], maybe_triggers[t2_index])
+                    maybe_triggers.append(a)
+            if line.startswith('ADD'):
+                _, *values = line.split(' ')
+                for v in values:
+                    n = int(v[1]) - 1
+                    triggers.append(maybe_triggers[n])
+        return triggers
     except FileNotFoundError as e:
         logging.error('File was not found: %s', e.filename)
         return None
@@ -120,7 +121,6 @@ def start(in_q):
             print('> {s}'.format(s=highlight_trigger_word(s, triggers)))
 
 
-use_path = os.path.abspath(__file__).replace('ps5.py', '')
 urls = ['https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en', 'http://rss.news.yahoo.com/rss/topstories']
 logging.getLogger().setLevel(logging.ERROR)
 # object that signals shutdown
@@ -131,3 +131,4 @@ t.start()
 time.sleep(3)
 t2 = Thread(target=start, args=(q,))
 t2.start()
+read_file()

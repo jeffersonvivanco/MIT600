@@ -108,3 +108,37 @@ in the future, you don't affect other developers who are using your class
     random walk), biological processes (ex: the kinetics of displacement of RNA from heteroduplexes of DNA), social
     processes (ex: movement of the stock market is definitely a random walk, expert for the day when the markets are all
     crashing for unfortunate reasons.)
+    
+## Some basic probability and plotting data
+* The world is all stochastic. Everything is probabilistic.
+* Causal non-determinism - the belief that not not every event is caused by previous events.
+* Predictive non-determinism - the concept here was that our inability to make accurate measurements about the physical
+world makes it impossible to make precise predictions about the future.
+* Stochastic processes
+  * A process is stochastic if it's next state depends on both the previous states and some random element.
+  * In a stochastic process, two events are independent if the outcome of one event has no influence on the outcome of the
+  other.
+* For a binary die, the probability of getting any number if rolled 10 times is `1 / (2 ^10)`
+* When we talk about some result having a particular probability, we are asking, essentially, the question, what fraction of
+the possible results have the property we're testing for?
+* Probabilities will always be fractions. That's important because it means that when we talk about the probability of some
+event occurring, we know it has to be somewhere between 0 and 1. Probabilities are never less than 0 or greater than 1.
+* The probability of not getting all 1s is `1 - ( 1 / (2 ^ 10))`. This is an important trick to remember.
+* `pylab` - is a python library that provides that provides many of the facilities of something called MATLAB.
+
+## Sampling and Monte Carlo Simulation
+* The probability of not getting a 1 on 10 rolls is `(5/6)^10`
+* The probability of getting at least one 1 is `1 - (5/6)^10`
+* You have a pair of dice, you roll it 24 times, what is the probability of getting double 6s?
+  * The probability of rolling a 6 with one die is `1/6`, with the next dies is also `1/6`. So the probability of getting
+  a double 6 is `1/6 * 1/6 = 1/36`. The probability of not getting a double 6 is `1 - 1/36 = 35/36`. The probability of not
+  getting it 24 times in a row `(35/35)^24` which is about `0.51..`.
+* Is it easier sometimes to write a simulation, then it is to do the probabilities?
+* Monte Carlo simulations are an example of what's called "inferential statistics".
+  * Inferential statistics is based upon one guiding principle. And that principle is that a random sample tends to exhibit
+  the same properties as the population from which it is drawn.
+  * One question is to see if above is true.
+* The law of large numbers (aka Bernoulli's Law)
+  * The law states that in repeated independent tests with same actual probability, `p`, chance that fraction of times outcome
+  occurs converges to `p` as number of trials goes to infinity.
+  
