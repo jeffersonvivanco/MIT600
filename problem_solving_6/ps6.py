@@ -9,8 +9,8 @@ class Position:
         """
         Initializes a position with coordinates (x, y).
         """
-        self.x = round(x, None)
-        self.y = round(y, None)
+        self.x = round(x, 2)
+        self.y = round(y, 2)
 
     def get_x(self):
         return self.x
@@ -35,10 +35,17 @@ class Position:
         # Compute the change in position
         delta_y = speed * math.cos(math.radians(angle))
         delta_x = speed * math.sin(math.radians(angle))
+
         # Add that to the existing position
         new_x = old_x + delta_x
         new_y = old_y + delta_y
         return Position(new_x, new_y)
+
+    def __str__(self):
+        return '[position] x: {}, y: {}'.format(self.get_x(), self.get_y())
+
+    def __repr__(self):
+        return 'Position({}, {})'.format(self.x, self.y)
 
 
 class RectangularRoom:
@@ -73,7 +80,7 @@ class RectangularRoom:
 
         pos: a Position
         """
-        self.tiles['{0}{1}'.format(pos.x, pos.y)] = True
+        self.tiles['{}{}'.format(int(pos.x), int(pos.y))] = True
 
     def is_tile_cleaned(self, m, n):
         """
@@ -85,7 +92,7 @@ class RectangularRoom:
         n: an integer
         returns: True if (m, n) is cleaned, False otherwise
         """
-        return self.tiles['{}{}'.format(m, n)] == True
+        return '{}{}'.format(int(m), int(n)) in self.tiles.keys()
 
     def get_num_tiles(self):
         """
@@ -110,8 +117,8 @@ class RectangularRoom:
         returns: a Position object.
         """
         while True:
-            x = random.random() * self.width
-            y = random.random() * self.height
+            x = random.random() * (self.width - 1)
+            y = random.random() * (self.height - 1)
             pos = Position(x, y)
             if self.is_position_in_room(pos):
                 return pos
@@ -124,6 +131,10 @@ class RectangularRoom:
         returns: True if pos is in the room, False otherwise.
         """
         return 0 <= pos.x < self.width and 0 <= pos.y < self.height
+
+    def __str__(self):
+        return '[Room] tiles: {}, number of tiles: {}, number of tiles cleaned: {}'.format(self.tiles, self.get_num_tiles(),
+                                                                                    self.get_num_cleaned_tiles())
 
 
 class Robot:
@@ -191,17 +202,67 @@ class Robot:
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        while True:
-            self.pos = self.pos.get_new_position(self.direct, self.speed)
-            if self.room.is_position_in_room(self.pos) and not self.room.is_tile_cleaned(self.pos.x, self.pos.y):
-                self.room.clean_tile_at_position(self.pos)
-                break
+        raise NotImplementedError
+
+    def __str__(self):
+        return '[Robot] current pos: {}, current direction: {}'.format(self.pos, self.direct)
 
 
 class StandardRobot(Robot):
-    pass
+    def __init__(self, room: RectangularRoom, speed):
+        super().__init__(room, speed)
+
+    def update_position_and_clean(self):
+        new_pos = True
+        while True:
+            if new_pos:
+                self.pos = self.pos.get_new_position(self.direct, self.speed)
+            else:
+                new_pos = True
+
+            if self.room.is_position_in_room(self.pos):
+                # print('pos {} in room, but not cleaned'.format(self.pos))
+                if not self.room.is_tile_cleaned(self.pos.get_x(), self.pos.get_y()):
+                    self.room.clean_tile_at_position(self.pos)
+                    break
+            else:
+                # print('pos is not in room {}, getting random pos'.format(self.pos))
+                self.pos = self.room.get_random_position()
+                new_pos = False
 
 
 class AppError(Exception):
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
+
+
+def run_simulation(num_robots, speed, width, height, min_coverage, num_trials, robot_type):
+    """
+    Runs NUM_TRIALS trials of the simulation and returns the mean number of time-steps needed to clean the fraction
+    MIN_COVERAGE of the room.
+
+    The simulation is run with NUM_ROBOTS robots of type ROBOT_TYPE, each with speed SPEED, in a room with dimensions
+    WIDTH x HEIGHT.
+    """
+    for _ in range(0, num_trials):
+        robots = []
+        room = RectangularRoom(width, height)
+        for _ in range(0, num_robots):
+            r = robot_type(room, speed)
+            print(r)
+            robots.append(r)
+        clock_ticks = 0
+        while round(len(room.tiles) / room.get_num_tiles(), 2) < min_coverage:
+            clock_ticks +=1
+            # print('clock tick: {}'.format(clock_ticks))
+            for r in robots:
+                r.update_position_and_clean()
+                sorted(room.tiles)
+                print(sorted(room.tiles))
+                if round(len(room.tiles) / room.get_num_tiles(), 2) >= min_coverage:
+                    break
+        # print(room)
+
+
+if __name__ == '__main__':
+    run_simulation(1, 1, 4, 4, 1, 2, StandardRobot)
