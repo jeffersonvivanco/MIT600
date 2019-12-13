@@ -30,17 +30,25 @@ class RectangularRoomTest(unittest.TestCase):
         room = RectangularRoom(4, 4)
         self.assertIsNotNone(room.get_random_position())
 
+    def test_get_new_position(self):
+        pos = Position(3, 3)
+        for _ in range(0, 100):
+            print(pos)
+            pos = pos.get_new_position(180, 1)
+        self.assertTrue(True)
+
 
 class RobotTest(unittest.TestCase):
     def test_create_robot(self):
         room = RectangularRoom(4, 4)
-        robot = Robot(room, 4)
+        robot = StandardRobot(room, 4)
         self.assertIsNotNone(robot)
 
     def test_update_position_and_clean(self):
         room = RectangularRoom(4, 4)
-        robot = Robot(room, 4)
+        robot = StandardRobot(room, 1)
         robot.update_position_and_clean()
+        print(room)
         self.assertTrue(room.is_tile_cleaned(robot.get_robot_position().get_x(), robot.get_robot_position().get_y()))
 
 
