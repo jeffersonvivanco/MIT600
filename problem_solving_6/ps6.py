@@ -1,4 +1,6 @@
 import math, random
+import matplotlib.pyplot as plt
+from problem_solving_6.Timer import Timer
 
 
 class Position:
@@ -221,14 +223,24 @@ class StandardRobot(Robot):
                 new_pos = True
 
             if self.room.is_position_in_room(self.pos):
-                # print('pos {} in room, but not cleaned'.format(self.pos))
                 if not self.room.is_tile_cleaned(self.pos.get_x(), self.pos.get_y()):
                     self.room.clean_tile_at_position(self.pos)
                     break
             else:
-                # print('pos is not in room {}, getting random pos'.format(self.pos))
                 self.pos = self.room.get_random_position()
                 new_pos = False
+
+
+class RandomWalkRobot(Robot):
+    def __init__(self, room: RectangularRoom, speed):
+        super().__init__(room, speed)
+
+    def update_position_and_clean(self):
+        while True:
+            self.pos = self.room.get_random_position()
+            if self.room.is_position_in_room(self.pos) and not self.room.is_tile_cleaned(self.pos.get_x(), self.pos.get_y()):
+                self.room.clean_tile_at_position(self.pos)
+                break
 
 
 class AppError(Exception):
@@ -244,25 +256,62 @@ def run_simulation(num_robots, speed, width, height, min_coverage, num_trials, r
     The simulation is run with NUM_ROBOTS robots of type ROBOT_TYPE, each with speed SPEED, in a room with dimensions
     WIDTH x HEIGHT.
     """
-    for _ in range(0, num_trials):
+    print('Starting simulation!')
+    t = Timer()
+    t_sum = 0
+    for _ in range(0, num_trials + 1):
+        print('Trial {}'.format(_))
+        t.start()
         robots = []
         room = RectangularRoom(width, height)
         for _ in range(0, num_robots):
             r = robot_type(room, speed)
-            print(r)
             robots.append(r)
-        clock_ticks = 0
         while round(len(room.tiles) / room.get_num_tiles(), 2) < min_coverage:
-            clock_ticks +=1
-            # print('clock tick: {}'.format(clock_ticks))
             for r in robots:
                 r.update_position_and_clean()
-                sorted(room.tiles)
-                print(sorted(room.tiles))
                 if round(len(room.tiles) / room.get_num_tiles(), 2) >= min_coverage:
                     break
-        # print(room)
+        t.stop()
+        print('{} seconds'.format(t.elapsed))
+        t_sum += t.elapsed
+        t.reset()
+
+    return t_sum / num_trials
 
 
 if __name__ == '__main__':
-    run_simulation(1, 1, 4, 4, 1, 2, StandardRobot)
+    plt.subplot(211)
+    plt.suptitle('MIT Problem 6')
+    plt.xlabel('Number of Robots')
+    plt.ylabel('Mean Time')
+    plt.title('#4 Problem 1')
+    avg_time1 = []
+    for n in range(1, 11):
+        a = run_simulation(10, 1, 20, 20, .8, 10, StandardRobot)
+        avg_time1.append(a)
+    plt.plot([n for n in range(1, 11)], avg_time1)
+
+    plt.subplot(212)
+    plt.title('#4 Problem 2')
+    plt.xlabel('width x height ratio')
+    plt.ylabel('Mean Time')
+    dimensions = ((20, 20), (25, 16), (40, 10), (50, 8), (80, 5), (100, 4))
+    avg_time2 = []
+    for (w, h) in dimensions:
+        a = run_simulation(2, 1, w, h, .8, 10, StandardRobot)
+        avg_time2.append(a)
+    plt.plot([s.__str__() for s in dimensions], avg_time2)
+
+    plt.figure(2)
+    plt.title('#6 Comparison between Standard and Random Walk Robot')
+    plt.xlabel('Type of Robot')
+    plt.ylabel('Mean Time')
+    robots = [StandardRobot, RandomWalkRobot]
+    avg_time3 = []
+    for r in robots:
+        a = run_simulation(1, 1, 20, 20, .8, 10, r)
+        avg_time3.append(a)
+    plt.plot(['Standard Robot', 'Random Walk Robot'], avg_time3)
+
+    plt.show()

@@ -48,8 +48,16 @@ class RobotTest(unittest.TestCase):
         room = RectangularRoom(4, 4)
         robot = StandardRobot(room, 1)
         robot.update_position_and_clean()
-        print(room)
         self.assertTrue(room.is_tile_cleaned(robot.get_robot_position().get_x(), robot.get_robot_position().get_y()))
+
+
+class RandomWalkRobotTest(unittest.TestCase):
+    def test_update_position_and_clean(self):
+        for n in range(0, 100):
+            room = RectangularRoom(4, 4)
+            robot = RandomWalkRobot(room, 1)
+            robot.update_position_and_clean()
+            self.assertTrue(room.is_tile_cleaned(robot.get_robot_position().get_x(), robot.get_robot_position().get_y()))
 
 
 if __name__ == '__main__':
