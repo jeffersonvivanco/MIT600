@@ -2,3 +2,4 @@
 .vscode/
 MITEnv/
 MITenv/
+__pycache__
