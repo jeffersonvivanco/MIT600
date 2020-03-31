@@ -142,3 +142,15 @@ event occurring, we know it has to be somewhere between 0 and 1. Probabilities a
   * The law states that in repeated independent tests with same actual probability, `p`, chance that fraction of times outcome
   occurs converges to `p` as number of trials goes to infinity.
   
+## Statistical Thinking
+How many samples do we need to have confidence in the result?
+
+Is the standard deviation relatively large or small to mean (Coefficient variation)?
+
+* Variance - is the measure of how much spread there is in the possible outcomes
+* Standard Deviation - the fraction of values that are close to the mean
+  * If many values are close to the mean, the standard deviation is small
+  * If many values are relatively far from the mean, the standard deviation is relatively large
+  * If all values are the same, then the standard deviation is 0
+* Coefficient of Variation - the standard deviation / mean
+
